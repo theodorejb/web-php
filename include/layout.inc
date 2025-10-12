@@ -47,6 +47,19 @@ function highlight_php_trimmed($code, $return = false)
     $break = (PHP_VERSION_ID < 80300) ? "<br />" : "\\n";
     $highlighted_code = preg_replace("!&lt;\?php($break)+!", '', $highlighted_code, 1);
 
+    // add syntax highlighting for variables
+    $variableReplacer = function (array $matches) {
+        if ($matches[1] !== '') {
+            $replacement = '<span class="default">' . $matches[1] . '</span>';
+        } else {
+            $replacement = '';
+        }
+        return $replacement . '<span class="variable">' . $matches[2] . '</span>';
+    };
+
+    $pattern = '!<span class="default">([\w\s]*)(\$[a-zA-Z_\x80-\xff][a-zA-Z0-9_\x80-\xff]*\s*)</span>!';
+    $highlighted_code = preg_replace_callback($pattern, $variableReplacer, $highlighted_code);
+
     if ($return) { return $highlighted_code; }
     echo $highlighted_code;
     return null;

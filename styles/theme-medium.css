@@ -829,15 +829,19 @@ div.warning a:focus {
   background-color: transparent;
 }
 .phpcode span.comment {
-  color: var(--dark-blue-color);
+  color: #83858a;
   background-color: transparent;
 }
 div.phpcode span.default {
-  color: #369;
+  color: #336ca6;
+  background-color: transparent;
+}
+div.phpcode span.variable {
+  color: #7d55ba;
   background-color: transparent;
 }
 div.phpcode span.keyword {
-  color: #693;
+  color: #5ba330;
   background-color: transparent;
 }
 div.phpcode span.string {
