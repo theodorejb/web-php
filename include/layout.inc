@@ -25,15 +25,14 @@ function highlight_php($code, $return = false)
     }
 
     // Fix output to use CSS classes and wrap well
-    $highlighted = '<div class="phpcode">' . strtr(
-        $highlighted,
-        [
-            '&nbsp;' => ' ',
-            "\n" => '',
+    $replace_pairs = ['<span style="color: ' => '<span class="'];
 
-            '<span style="color: ' => '<span class="',
-        ],
-    ) . '</div>';
+    if (PHP_VERSION_ID < 80300) {
+        $replace_pairs['&nbsp;'] = ' ';
+        $replace_pairs["\n"] = '';
+    }
+
+    $highlighted = '<div class="phpcode">' . strtr($highlighted, $replace_pairs) . '</div>';
 
     if ($return) { return $highlighted; }
     echo $highlighted;
@@ -45,7 +44,8 @@ function highlight_php_trimmed($code, $return = false)
 {
     $code = "<?php\n" . $code;
     $highlighted_code = highlight_php($code, true);
-    $highlighted_code = preg_replace("!&lt;\?php(<br />)+!", '', $highlighted_code, 1);
+    $break = (PHP_VERSION_ID < 80300) ? "<br />" : "\\n";
+    $highlighted_code = preg_replace("!&lt;\?php($break)+!", '', $highlighted_code, 1);
 
     if ($return) { return $highlighted_code; }
     echo $highlighted_code;
