@@ -115,19 +115,19 @@ function get_code_block(
 
     if ($noBeforeCode) {
         $codeMarkup = <<<HTML
-            <div class="example-contents example-contents-full">
+            <div class="example-contents-full">
                 <div class="php8-compare__label php8-compare__label_new">$version</div>
                 <div class="php8-code phpcode">$afterCode</div>
             </div>
         HTML;
     } else {
         $codeMarkup = <<<HTML
-            <div class="php8-compare__block example-contents">
+            <div class="php8-compare__block">
                 <div class="php8-compare__label">$previousVersion</div>
                 <div class="php8-code phpcode">$beforeCode</div>
             </div>
             <div class="php8-compare__arrow"></div>
-            <div class="php8-compare__block example-contents">
+            <div class="php8-compare__block">
                 <div class="php8-compare__label php8-compare__label_new">$version</div>
                 <div class="php8-code $alignClass phpcode">
                     $afterCode

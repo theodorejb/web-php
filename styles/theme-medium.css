@@ -3,6 +3,7 @@
   --background-text-color: #CCC;
   --content-background-color: #F2F2F2;
   --content-text-color: var(--dark-grey-color);
+  --before-code-color: #FBC8D6;
 }
 
 html {
