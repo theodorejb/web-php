@@ -8,11 +8,7 @@
 }
 
 .php8-section_dark {
-  background-color: var(--dark-blue-color);
-  /* Trick for darkening the background color, there is no gradient.
-   * Can be refactored once color-mix becomes widely supported.
-   * See https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color-mix */
-  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+  background-color: color-mix(in oklab, var(--dark-blue-color), #000 8%);
   color: #fff;
 }
 
@@ -246,7 +242,7 @@
   letter-spacing: normal;
   text-align: center;
   color: var(--background-color);
-  background-color: var(--foreground-color);
+  background-color: #fbe4ec;
 }
 
 .php8-compare__label_new {
