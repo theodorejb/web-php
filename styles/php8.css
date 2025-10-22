@@ -3,16 +3,12 @@
 }
 
 .php8-section {
-  padding: 96px 1.5rem;
+  padding: 60px 1.5rem;
   margin: 0 -1.5rem;
 }
 
 .php8-section_dark {
-  background-color: var(--dark-blue-color);
-  /* Trick for darkening the background color, there is no gradient.
-   * Can be refactored once color-mix becomes widely supported.
-   * See https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/color-mix */
-  background-image: linear-gradient(rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.1));
+  background-color: color-mix(in oklab, var(--dark-blue-color), #000 8%);
   color: #fff;
 }
 
@@ -38,12 +34,12 @@
   position: relative;
   padding-top: 64px;
   margin-top: -1.5rem;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: system-ui, Helvetica, Arial, sans-serif;
 }
 
 .php8-section_footer {
   margin-bottom: -1.5rem;
-  font-family: Helvetica, Arial, sans-serif;
+  font-family: system-ui, Helvetica, Arial, sans-serif;
 }
 
 .php8-section img {
@@ -65,7 +61,6 @@
   font-stretch: normal;
   font-style: normal;
   line-height: 1.07;
-  letter-spacing: -1.5px;
 }
 
 @media (max-width: 480px) {
@@ -92,9 +87,10 @@
 }
 
 .php8-h2 {
+  font-family: system-ui, Helvetica, Arial, sans-serif;
   display: inline-block;
   font-size: 31px;
-  font-weight: bold;
+  font-weight: normal;
   font-stretch: normal;
   font-style: normal;
   line-height: 1.29;
@@ -123,7 +119,7 @@
 .php8-button {
   display: inline-block;
   padding: 16px 46px;
-  border-radius: 30px;
+  border-radius: 10px;
   border: none;
   background-color: var(--dark-blue-color);
   color: #fff !important;
@@ -144,7 +140,7 @@
 }
 
 .php8-button_light {
-  background-color: #fff !important;
+  background-color: rgba(255, 255, 255, 0.85);
   color: #27282c !important;
 }
 
@@ -215,14 +211,8 @@
 }
 
 .php8-compare__main {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: stretch;
-  -ms-flex-align: stretch;
   align-items: stretch;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
@@ -234,15 +224,15 @@
 
 .php8-compare__block {
   position: relative;
-  -ms-flex-preferred-size: calc((100% - 68px)/2);
   flex-basis: calc((100% - 68px)/2);
   text-align: left;
+  border-left-width: 2px;
 }
 
 .php8-compare__label {
   position: absolute;
-  top: 12px;
-  left: 12px;
+  top: 0;
+  left: 0;
   padding: 6px 16px 4px;
   border-radius: 4px;
   font-size: 12px;
@@ -253,7 +243,7 @@
   letter-spacing: normal;
   text-align: center;
   color: var(--background-color);
-  background-color: var(--foreground-color);
+  background-color: var(--before-code-color);
 }
 
 .php8-compare__label_new {
@@ -292,17 +282,26 @@
 }
 
 .php8-code {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-align: center;
-  -ms-flex-align: center;
   align-items: center;
   width: 100%;
   height: 100%;
-  padding: 50px 40px 38px !important;
+  padding: 45px 25px 25px !important;
   box-sizing: border-box;
   margin: 0 !important;
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  border-left-width: 2px;
+  border-left-color: var(--before-code-color);
+}
+
+.php8-compare__label_new + .php8-code {
+  border-left-color: var(--dark-blue-color);
+}
+
+.align-start {
+    align-items: start;
 }
 
 @media (max-width: 768px) {
@@ -332,11 +331,7 @@
 }
 
 .php8-columns {
-  display: -webkit-box;
-  display: -ms-flexbox;
   display: flex;
-  -webkit-box-pack: justify;
-  -ms-flex-pack: justify;
   justify-content: space-between;
 }
 
@@ -347,7 +342,6 @@
 }
 
 .php8-column {
-  -ms-flex-preferred-size: calc((100% - 68px)/2);
   flex-basis: calc((100% - 68px)/2);
 }
 
