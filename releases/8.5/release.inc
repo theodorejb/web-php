@@ -1,6 +1,8 @@
 <?php
 
-use function releases\php85\common_header;use function releases\php85\language_chooser;use function releases\php85\message;
+use function releases\php85\common_header;
+use function releases\php85\language_chooser;
+use function releases\php85\message;
 
 if (!isset($lang)) {
     $lang = 'en';
@@ -14,6 +16,212 @@ $_SERVER['BASE_PAGE'] = 'releases/8.5/' . $lang . '.php';
 include_once __DIR__ . '/common.php';
 
 common_header(message('common_header', $lang));
+
+$comparisons = [
+    [
+        'id' => 'uri_extension',
+        'title' => message('uri_extension_title', $lang),
+        'description' => message('uri_extension_description', $lang),
+        'links' => ['RFC|https://wiki.php.net/rfc/url_parsing_api'],
+        'before' => <<<'PHP'
+            $components = parse_url('https://php.net/releases/8.4/en.php');
+
+            var_dump($components['host']);
+            // string(7) "php.net"
+            PHP,
+        'after' => <<<'PHP'
+            use Uri\Rfc3986\Uri;
+
+            $uri = new Uri('https://php.net/releases/8.5/en.php');
+
+            var_dump($uri->getHost());
+            // string(7) "php.net"
+            PHP,
+    ],
+    [
+        'id' => 'pipe_operator',
+        'title' => message('pipe_operator_title', $lang),
+        'description' => message('pipe_operator_description', $lang),
+        'links' => ['RFC|https://wiki.php.net/rfc/pipe-operator-v3'],
+        'before' => <<<'PHP'
+            $title = ' PHP 8.5 Released ';
+
+            $slug = strtolower(
+                str_replace('.', '',
+                    str_replace(' ', '-',
+                        trim($title)
+                    )
+                )
+            );
+
+            var_dump($slug); // string(15) "php-85-released"
+            PHP,
+        'after' => <<<'PHP'
+            $title = ' PHP 8.5 Released ';
+
+            $slug = $title
+                |> trim(...)
+                |> (fn($str) => str_replace(' ', '-', $str))
+                |> (fn($str) => str_replace('.', '', $str))
+                |> strtolower(...);
+
+            var_dump($slug); // string(15) "php-85-released"
+            PHP,
+    ],
+    [
+        'id' => 'clone_with',
+        'title' => message('clone_with_title', $lang),
+        'description' => message('clone_with_description', $lang),
+        'links' => ['RFC|https://wiki.php.net/rfc/clone_with_v2'],
+        'before' => <<<'PHP'
+            readonly class Color
+            {
+                public function __construct(
+                    public int $red,
+                    public int $green,
+                    public int $blue,
+                    public int $alpha = 255,
+                ) {}
+
+                public function withAlpha(int $alpha): self
+                {
+                    $values = get_object_vars($this);
+                    $values['alpha'] = $alpha;
+                    return new self(...$values);
+                }
+            }
+
+            $blue = new Color(79, 91, 147);
+            $transparentBlue = $blue->withAlpha(128);
+            PHP,
+        'after' => <<<'PHP'
+            readonly class Color
+            {
+                public function __construct(
+                    public int $red,
+                    public int $green,
+                    public int $blue,
+                    public int $alpha = 255,
+                ) {}
+
+                public function withAlpha(int $alpha): self
+                {
+                    return clone($this, ['alpha' => $alpha]);
+                }
+            }
+
+            $blue = new Color(79, 91, 147);
+            $transparentBlue = $blue->withAlpha(128);
+            PHP,
+    ],
+    [
+        'id' => 'no_discard',
+        'title' => message('no_discard_title', $lang),
+        'description' => message('no_discard_description', $lang),
+        'links' => ['RFC|https://wiki.php.net/rfc/marking_return_value_as_important'],
+        'before' => <<<'PHP'
+            function getPhpVersion(): string
+            {
+                return 'PHP 8.4';
+            }
+
+            getPhpVersion(); // No warning
+            PHP,
+        'after' => <<<'PHP'
+            #[\NoDiscard]
+            function getPhpVersion(): string
+            {
+                return 'PHP 8.5';
+            }
+
+            getPhpVersion();
+            // Warning: The return value of function getPhpVersion() should either be used or intentionally ignored by casting it as (void)
+            PHP,
+    ],
+    [
+        'id' => 'array_first_last',
+        'title' => message('array_first_last_title', $lang),
+        'links' => ['RFC|https://wiki.php.net/rfc/array_first_last'],
+        'before' => <<<'PHP'
+            $lastEvent = $events === []
+                ? null
+                : $events[array_key_last($events)];
+            PHP,
+        'after' => <<<'PHP'
+            $lastEvent = array_last($events);
+            PHP,
+    ],
+    [
+        'id' => 'closures_in_const_expr',
+        'title' => message('fcc_in_const_expr_title', $lang),
+        'description' => message('fcc_in_const_expr_description', $lang),
+        'links' => [
+            'RFC|https://wiki.php.net/rfc/closures_in_const_expr',
+            'RFC|https://wiki.php.net/rfc/fcc_in_const_expr',
+        ],
+        'before' => <<<'PHP'
+            function increment(
+                int $value,
+                ?Closure $incrementer = null,
+            ): int {
+                if ($incrementer === null) {
+                    $incrementer = addOne(...);
+                }
+
+                return $incrementer($value);
+            }
+
+            function addOne(int $value): int
+            {
+                return $value + 1;
+            }
+            PHP,
+        'after' => <<<'PHP'
+            function increment(
+                int $value,
+                Closure $incrementer = addOne(...),
+            ): int {
+                return $incrementer($value);
+            }
+
+            function addOne(int $value): int
+            {
+                return $value + 1;
+            }
+            PHP,
+    ],
+    [
+        'id' => 'curl_share_persistence',
+        'title' => message('persistent_curl_share_handles_title', $lang),
+        'description' => message('persistent_curl_share_handles_description', $lang),
+        'links' => [
+            'RFC|https://wiki.php.net/rfc/curl_share_persistence',
+            'RFC|https://wiki.php.net/rfc/curl_share_persistence_improvement',
+        ],
+        'before' => <<<'PHP'
+            $sh = curl_share_init();
+            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
+            curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
+
+            $ch1 = curl_init('https://php.net/');
+            curl_setopt($ch1, CURLOPT_SHARE, $sh);
+
+            curl_exec($ch1);
+            PHP,
+        'after' => <<<'PHP'
+            $sh = curl_share_init_persistent([
+                CURL_LOCK_DATA_DNS,
+                CURL_LOCK_DATA_CONNECT
+            ]);
+
+            $ch1 = curl_init('https://php.net/');
+            curl_setopt($ch1, CURLOPT_SHARE, $sh);
+
+            // This may now reuse the connection from an earlier SAPI request
+            curl_exec($ch1);
+            PHP,
+    ],
+];
 
 ?>
     <section class="php8-section php8-section_dark php8-section_header center">
@@ -34,357 +242,7 @@ common_header(message('common_header', $lang));
         </div>
     </section>
 
-    <section class="php8-section center">
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="uri_extension">
-                <?= message('uri_extension_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/url_parsing_api">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$components = parse_url('https://php.net/releases/8.4/en.php');
-
-var_dump($components['host']);
-// string(7) "php.net"
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-use Uri\Rfc3986\Uri;
-
-$uri = new Uri('https://php.net/releases/8.5/en.php');
-
-var_dump($uri->getHost());
-// string(7) "php.net"
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('uri_extension_description', $lang) ?>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="pipe_operator">
-                <?= message('pipe_operator_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/pipe-operator-v3">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$title = ' PHP 8.5 Released ';
-
-$slug = strtolower(
-    str_replace('.', '',
-        str_replace(' ', '-',
-            trim($title)
-        )
-    )
-);
-
-var_dump($slug); // string(15) "php-85-released"
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$title = ' PHP 8.5 Released ';
-
-$slug = $title
-    |> trim(...)
-    |> (fn($str) => str_replace(' ', '-', $str))
-    |> (fn($str) => str_replace('.', '', $str))
-    |> strtolower(...);
-
-var_dump($slug); // string(15) "php-85-released"
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('pipe_operator_description', $lang) ?>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="clone_with">
-                <?= message('clone_with_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/clone_with_v2">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-readonly class Color
-{
-    public function __construct(
-        public int $red,
-        public int $green,
-        public int $blue,
-        public int $alpha = 255,
-    ) {}
-
-    public function withAlpha(int $alpha): self
-    {
-        $values = get_object_vars($this);
-        $values['alpha'] = $alpha;
-        return new self(...$values);
-    }
-}
-
-$blue = new Color(79, 91, 147);
-$transparentBlue = $blue->withAlpha(128);
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-readonly class Color
-{
-    public function __construct(
-        public int $red,
-        public int $green,
-        public int $blue,
-        public int $alpha = 255,
-    ) {}
-
-    public function withAlpha(int $alpha): self
-    {
-        return clone($this, ['alpha' => $alpha]);
-    }
-}
-
-$blue = new Color(79, 91, 147);
-$transparentBlue = $blue->withAlpha(128);
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('clone_with_description', $lang) ?>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="no_discard">
-                <?= message('no_discard_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/marking_return_value_as_important">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-function getPhpVersion(): string
-{
-	return 'PHP 8.4';
-}
-
-getPhpVersion(); // No warning
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-#[\NoDiscard]
-function getPhpVersion(): string
-{
-	return 'PHP 8.5';
-}
-
-getPhpVersion();
-// Warning: The return value of function getPhpVersion() should either be used or intentionally ignored by casting it as (void)
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('no_discard_description', $lang) ?>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="array_first_last">
-                <?= message('array_first_last_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/array_first_last">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$lastEvent = $events === []
-    ? null
-    : $events[array_key_last($events)];
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$lastEvent = array_last($events);
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="fcc_in_const_expr">
-                <?= message('fcc_in_const_expr_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/closures_in_const_expr">RFC</a>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/fcc_in_const_expr">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-function increment(
-    int $value,
-    ?Closure $incrementer = null,
-): int {
-    if ($incrementer === null) {
-        $incrementer = addOne(...);
-    }
-
-    return $incrementer($value);
-}
-
-function addOne(int $value): int
-{
-    return $value + 1;
-}
-PHP
-
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-function increment(
-    int $value,
-    Closure $incrementer = addOne(...),
-): int {
-    return $incrementer($value);
-}
-
-function addOne(int $value): int
-{
-    return $value + 1;
-}
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('fcc_in_const_expr_description', $lang) ?>
-            </div>
-        </div>
-
-        <div class="php8-compare">
-            <h2 class="php8-h2" id="curl_share_persistence_improvement">
-                <?= message('persistent_curl_share_handles_title', $lang) ?>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/curl_share_persistence">RFC</a>
-                <a class="php8-rfc" href="https://wiki.php.net/rfc/curl_share_persistence_improvement">RFC</a>
-            </h2>
-            <div class="php8-compare__main">
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label">PHP &lt; 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$sh = curl_share_init();
-curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_DNS);
-curl_share_setopt($sh, CURLSHOPT_SHARE, CURL_LOCK_DATA_CONNECT);
-
-$ch1 = curl_init('https://php.net/');
-curl_setopt($ch1, CURLOPT_SHARE, $sh);
-
-curl_exec($ch1);
-PHP
-                        ); ?>
-                    </div>
-                </div>
-                <div class="php8-compare__arrow"></div>
-                <div class="php8-compare__block example-contents">
-                    <div class="php8-compare__label php8-compare__label_new">PHP 8.5</div>
-                    <div class="php8-code phpcode">
-                        <?php highlight_php_trimmed(
-                                <<<'PHP'
-$sh = curl_share_init_persistent([
-    CURL_LOCK_DATA_DNS,
-    CURL_LOCK_DATA_CONNECT
-]);
-
-$ch1 = curl_init('https://php.net/');
-curl_setopt($ch1, CURLOPT_SHARE, $sh);
-
-// This may now reuse the connection from an earlier SAPI request
-curl_exec($ch1);
-PHP
-                        ); ?>
-                    </div>
-                </div>
-            </div>
-            <div class="php8-compare__content">
-                <?= message('persistent_curl_share_handles_description', $lang) ?>
-            </div>
-        </div>
-    </section>
+    <?= feature_comparisons($comparisons, 'PHP 8.5', 'PHP < 8.5') ?>
 
     <section class="php8-section center php8-section_light php8-columns">
         <div class="php8-column">
