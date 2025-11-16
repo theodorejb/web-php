@@ -88,6 +88,7 @@ $os = [
             'windows-native' => 'Single Line Installer',
             'windows-chocolatey' => 'Chocolatey',
             'windows-scoop' => 'Scoop',
+            'windows-winget' => 'Winget',
             'windows-docker' => 'Docker',
             'windows-wsl-debian' => 'WSL/Debian',
             'windows-wsl-ubuntu' => 'WSL/Ubuntu',
@@ -211,8 +212,6 @@ if ($auto_osvariant && (!array_key_exists('osvariant', $options) || !array_key_e
 <h2>Instructions</h2>
 <div id="instructions" class="instructions">
 <?php $instructionsShown = include 'downloads-get-instructions.php'; ?>
-</div>
-
 <?php if (!$instructionsShown): ?>
 
 <h2>Source Code</h2>
@@ -229,10 +228,10 @@ to verify the tags:
 <?php gpg_key_show_keys(true /* activeOnly */); ?>
 
 <p>
-  <a href="gpg-keys.php">
-    A full list of GPG keys used for current and older releases is also
-    available.
-  </a>
+    <a href="gpg-keys.php">
+        A full list of GPG keys used for current and older releases is also
+        available.
+    </a>
 </p>
 
 <h2>Binaries</h2>
@@ -254,6 +253,7 @@ to verify the tags:
 </p>
 
 <?php endif; ?>
+</div>
 
     <script>
         let currentController = null;
